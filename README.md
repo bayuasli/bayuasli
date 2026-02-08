@@ -1,24 +1,37 @@
-# Welcome to My Cyberpunk Profile 🌌
+# SbyuXdwoy
 
-![Verified Badge](https://img.shields.io/badge/verified%20-user%20-green)
+![Banner](https://raw.githubusercontent.com/bayuasli/dat3/main/uploads/723a57-1770581561986.jpg)
 
----
+## Verified Badge
 
-## ⚙️ Skills
-![JavaScript](https://img.shields.io/badge/-JavaScript-black?style=flat&logo=javascript)
-![Python](https://img.shields.io/badge/-Python-black?style=flat&logo=python)
-![React](https://img.shields.io/badge/-React-black?style=flat&logo=react)
-
-## 🚀 Featured Projects
-- [Project 1](https://github.com/bayuasli/project1) - Description of Project 1
-- [Project 2](https://github.com/bayuasli/project2) - Description of Project 2
-
-## 📊 GitHub Stats
-![GitHub Stats](https://github-readme-stats.vercel.app/api?username=bayuasli&show_icons=true&theme=dark)
+![Verified Badge](https://hardhat.org/hardhat-logo.svg) 
 
 ---
 
-## 🌐 Connect With Me
-[LinkedIn](https://linkedin.com/in/bayuasli) | [Twitter](https://twitter.com/bayuasli)
+## Overview
+Welcome to the SbyuXdwoy project! This project aims to contribute to the world of hacking and cybersecurity.
+
+### Features
+- User-friendly interface
+- Dark theme with a professional aesthetic
+- Regular updates and community support
+
+### Installation
+To get started with this project, clone the repository:
+
+```bash
+git clone https://github.com/bayuasli/bayuasli.git
+```
+
+### Usage
+You can use this project for:
+- Educational purposes
+- Cybersecurity training
+
+### License
+This project is licensed under the MIT License.
 
 ---
+
+### Contact
+For questions or contributions, feel free to reach out to me on GitHub!
