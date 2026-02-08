@@ -1,56 +1,24 @@
-# Welcome to Bayuasli's Repository
+# Welcome to My Cyberpunk Profile 🌌
 
-![Banner](https://raw.githubusercontent.com/bayuasli/dat3/main/uploads/723a57-1770581561986.jpg)
-
----
-
-## Cyberpunk Hacker Aesthetic
-
-```
-        .-.
-       |_:_|
-      .-._.-.
-    __| | | |__
-   /__/  |  \__\
-   \/_\  |  /_\/
-      |  |  |
-      | | | |
-      | | | |
-      | | | |
-     ///| |\\\
-    /// | | \\\  
-   ///  | |  \\
-```
-
-### 🚀 Features
-- **Neon Glowing Effects**: The design features a vibrant neon aesthetic that represents the futuristic hacker culture.
-- **ASCII Art**: Dive into the cyber world with mesmerizing ASCII representations.
-
-### 🔒 Getting Started
-To get started, clone the repository:
-```bash
-git clone https://github.com/bayuasli/bayuasli.git
-```
-
-### 🌌 Installation
-Install the required packages using:
-```bash
-npm install
-```
-
-### 💻 Usage
-Run the application with:
-```bash
-npm start
-```
-
-### 🛠️ Contributing
-We welcome contributions! Check out the [CONTRIBUTING.md](CONTRIBUTING.md) for more information.
-
-### 📄 License
-Distributed under the MIT License. See `LICENSE` for more information.
+![Verified Badge](https://img.shields.io/badge/verified%20-user%20-green)
 
 ---
 
-### Join the Fight in the Matrix!
-Are you ready to hack the planet? Join us in exploring the digital realms!
+## ⚙️ Skills
+![JavaScript](https://img.shields.io/badge/-JavaScript-black?style=flat&logo=javascript)
+![Python](https://img.shields.io/badge/-Python-black?style=flat&logo=python)
+![React](https://img.shields.io/badge/-React-black?style=flat&logo=react)
+
+## 🚀 Featured Projects
+- [Project 1](https://github.com/bayuasli/project1) - Description of Project 1
+- [Project 2](https://github.com/bayuasli/project2) - Description of Project 2
+
+## 📊 GitHub Stats
+![GitHub Stats](https://github-readme-stats.vercel.app/api?username=bayuasli&show_icons=true&theme=dark)
+
+---
+
+## 🌐 Connect With Me
+[LinkedIn](https://linkedin.com/in/bayuasli) | [Twitter](https://twitter.com/bayuasli)
+
+---
