@@ -1,53 +1,56 @@
 # Welcome to Bayuasli's Repository
 
-![Cyberpunk Aesthetic](https://example.com/cyberpunk_image.jpg)
+![Banner](https://raw.githubusercontent.com/bayuasli/dat3/main/uploads/723a57-1770581561986.jpg)
 
 ---
 
-```plaintext
-                .     .         
-           .       *      .  
-      .        .       .    *   .  
-       *    *     *       .    
-                *    .    *   .   
-            .    *  .   
-        *      .         *  
-  * .    *  *  .    .   
+## Cyberpunk Hacker Aesthetic
+
+```
+        .-.
+       |_:_|
+      .-._.-.
+    __| | | |__
+   /__/  |  \__\
+   \/_\  |  /_\/
+      |  |  |
+      | | | |
+      | | | |
+      | | | |
+     ///| |\\\
+    /// | | \\\  
+   ///  | |  \\
 ```
 
-## 🌌 About This Repo
+### 🚀 Features
+- **Neon Glowing Effects**: The design features a vibrant neon aesthetic that represents the futuristic hacker culture.
+- **ASCII Art**: Dive into the cyber world with mesmerizing ASCII representations.
 
-This repository is designed with a **dark hacker aesthetic**. It includes several tools, scripts, and frameworks that relate to **cyberpunk themes** and **hacker culture**. The goal is to provide these resources for learning and experimentation.
+### 🔒 Getting Started
+To get started, clone the repository:
+```bash
+git clone https://github.com/bayuasli/bayuasli.git
+```
 
-## 🚀 Features
-- **Neon Colors**
-- **ASCII Art**
-- **Glowing Effects**
-- **Dangerously Creative**
+### 🌌 Installation
+Install the required packages using:
+```bash
+npm install
+```
 
-## ⚡ How to Use
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/bayuasli/bayuasli.git
-   ```
-2. Navigate to the directory:
-   ```bash
-   cd bayuasli
-   ```
-3. Enjoy the ultimate cyberpunk experience!
+### 💻 Usage
+Run the application with:
+```bash
+npm start
+```
 
-## 🎨 Visual Style
-This project promotes creativity with neon-lit designs. Get ready to delve into the dark and tech-filled world of cyberpunk!
+### 🛠️ Contributing
+We welcome contributions! Check out the [CONTRIBUTING.md](CONTRIBUTING.md) for more information.
+
+### 📄 License
+Distributed under the MIT License. See `LICENSE` for more information.
 
 ---
 
-**Stay illuminated and hack the Matrix!**
-
-**Date of Creation: 2026-02-08 20:11:58 (UTC)**
-
-**Contributors:**
-- [bayuasli](https://github.com/bayuasli)  
-
-**Follow for more cyberpunk inspiration!**  
-
-🖤💚💻  
+### Join the Fight in the Matrix!
+Are you ready to hack the planet? Join us in exploring the digital realms!
