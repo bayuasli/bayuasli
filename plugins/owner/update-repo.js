@@ -1,145 +1,57 @@
 import fs from "fs";
 import path from "path";
-import axios from "axios";
+import { Button } from "#helper";
+import {
+  uploadSingleFile,
+  uploadFolder,
+  deleteSingleFile,
+  deleteFolder,
+  listFiles,
+  getTree
+} from "#scrape/uprepo.js";
 
 const REPO_OWNER = "sbyuxD";
 const REPO_NAME = "WolfBot";
 const BRANCH = "main";
+const dbPath = path.join(process.cwd(), "lib/database/github.json");
 
-async function getFileSha(repoPath, token) {
+function getStoredToken() {
   try {
-    const { data } = await axios.get(
-      `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${repoPath}`,
-      {
-        params: { ref: BRANCH },
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/vnd.github+json",
-        },
-      },
-    );
-    return data.sha;
-  } catch (error) {
-    if (error.response?.status === 404) {
-      return null;
+    if (fs.existsSync(dbPath)) {
+      const data = JSON.parse(fs.readFileSync(dbPath, "utf-8"));
+      if (data.token) return data.token;
     }
-    throw error;
-  }
+  } catch {}
+  return global.githubToken || "";
 }
 
-async function uploadFile(repoPath, token) {
-  const fullPath = path.resolve(process.cwd(), repoPath);
-
-  if (!fs.existsSync(fullPath)) {
-    return { ok: false, reason: `File tidak ditemukan: ${repoPath}` };
-  }
-
-  const stats = fs.statSync(fullPath);
-  if (stats.isDirectory()) {
-    return { ok: false, reason: `Path adalah folder, bukan file: ${repoPath}` };
-  }
-
-  const content = fs.readFileSync(fullPath).toString("base64");
-  const sha = await getFileSha(repoPath, token);
-
-  const response = await axios.put(
-    `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${repoPath}`,
-    {
-      message: `update: ${repoPath}`,
-      content,
-      branch: BRANCH,
-      ...(sha ? { sha } : {}),
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/vnd.github+json",
-      },
-    },
-  );
-
-  return {
-    ok: true,
-    action: sha ? "updated" : "created",
-    url: response.data.content.html_url,
-    sha: response.data.content.sha,
-  };
+function formatBytes(bytes) {
+  if (!bytes || bytes === 0) return "0 B";
+  const k = 1024;
+  const sizes = ["B", "KB", "MB", "GB", "TB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 }
 
-async function deleteFile(repoPath, token) {
-  const sha = await getFileSha(repoPath, token);
-  if (!sha) {
-    return { ok: false, reason: `File tidak ditemukan di GitHub: ${repoPath}` };
-  }
-
-  await axios.delete(
-    `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${repoPath}`,
-    {
-      data: {
-        message: `delete: ${repoPath}`,
-        sha,
-        branch: BRANCH,
-      },
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/vnd.github+json",
-      },
-    },
-  );
-
-  return { ok: true, action: "deleted" };
+function showMenu(conn, m) {
+  return new Button(conn)
+    .setTitle("GitHub Uploader")
+    .setBody(`Repo: ${REPO_OWNER}/${REPO_NAME} (${BRANCH})\n\nPilih opsi aksi uploader:`)
+    .setFooter(global.body || "sbyuxD !")
+    .addSelection("Pilih Opsi")
+    .makeSection("Aksi Repo")
+    .makeRow("", "Upload File/Folder", "Ketik: .upsc <path>", ".upsc")
+    .makeRow("", "Hapus File/Folder", "Ketik: .upsc delete <path>", ".upsc delete")
+    .makeRow("", "List File Repo", "Ketik: .upsc list [path]", ".upsc list")
+    .makeRow("", "Tree Hierarchy", "Ketik: .upsc tree", ".upsc tree")
+    .send(m.chat, { quoted: m });
 }
-
-async function listFiles(dirPath = "", token) {
-  try {
-    const { data } = await axios.get(
-      `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${dirPath}`,
-      {
-        params: { ref: BRANCH },
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/vnd.github+json",
-        },
-      },
-    );
-
-    return data.map((item) => ({
-      name: item.name,
-      path: item.path,
-      type: item.type,
-      size: item.size,
-      url: item.html_url,
-    }));
-  } catch (error) {
-    if (error.response?.status === 404) {
-      return [];
-    }
-    throw error;
-  }
-}
-
-const HELP = `*📤 GitHub Uploader*
-
-Perintah:
-• .upsc <path> - Upload file ke repo
-• .upsc delete <path> - Hapus file dari repo
-• .upsc list [path] - Lihat file di repo
-• .upsc info <path> - Info file di repo
-
-Contoh:
-.upsc plugins/owner/test.js
-.upsc delete plugins/owner/test.js
-.upsc list plugins
-.upsc info config.js
-
-Repo: ${REPO_OWNER}/${REPO_NAME}
-Branch: ${BRANCH}`;
 
 export default {
   name: "update-repo",
   category: "owner",
-  command: ["upsc", "github", "gh"],
-  alias: ["gitpush", "repoupdate"],
+  command: ["upsc", "uprepo", "gitpush"],
+  alias: ["repoupdate"],
 
   settings: {
     owner: true,
@@ -147,204 +59,159 @@ export default {
     group: false,
     admin: false,
     botAdmin: false,
-    loading: true,
+    loading: false,
   },
 
   run: async (conn, m) => {
-    const token = global.githubToken;
+    const token = getStoredToken();
 
-    if (!token || token === "") {
-      return m.reply(
-        '❌ GitHub token belum diset.\n\nTambahkan di config.js:\nglobal.githubToken = "your_token_here"',
-      );
+    if (!token) {
+      return m.reply("Token GitHub belum di-set. Gunakan `.git settoken <token>` terlebih dahulu.");
     }
 
-    const args = m.args;
-    if (args.length === 0) {
-      return m.reply(HELP);
-    }
+    const args = m.args || [];
+    if (!args.length) return showMenu(conn, m);
 
     const action = args[0].toLowerCase();
 
     if (action === "delete" || action === "del" || action === "rm") {
-      const filePath = args[1];
-      if (!filePath) {
-        return m.reply(
-          "Sertakan path file yang akan dihapus.\n\nContoh: .upsc delete plugins/test.js",
-        );
+      const targetPath = args[1]?.replace(/^\.\//, "").trim();
+      if (!targetPath) {
+        return m.reply("Ketik path file/folder di GitHub yang ingin dihapus.\n\nContoh: `.upsc delete plugins/owner/test.js`");
       }
 
-      const cleanPath = filePath.replace(/^\.\//, "");
-
-      await m.reply(`🗑️ Menghapus *${cleanPath}* dari GitHub...`);
+      await m.react("⏳");
 
       try {
-        const result = await deleteFile(cleanPath, token);
-        if (!result.ok) {
-          return m.reply(`❌ Gagal: ${result.reason}`);
-        }
+        const fullLocal = path.resolve(process.cwd(), targetPath);
+        const isLocalDir = fs.existsSync(fullLocal) && fs.statSync(fullLocal).isDirectory();
 
-        return m.reply(
-          `✅ *File berhasil dihapus*\n\n📄 ${cleanPath}\n📦 Repo: ${REPO_OWNER}/${REPO_NAME}`,
-        );
-      } catch (error) {
-        console.error("Delete error:", error);
-        return m.reply(
-          `❌ Gagal menghapus file: ${error.response?.data?.message || error.message}`,
-        );
+        if (isLocalDir) {
+          const res = await deleteFolder(targetPath, token);
+          await m.react("✅");
+          return new Button(conn)
+            .setBody(`*FOLDER DELETED FROM GITHUB*\n\n• *Path* : \`${targetPath}\`\n• *Jumlah File* : \`${res.deleted} file\``)
+            .addUrl("Buka Repo", `https://github.com/${REPO_OWNER}/${REPO_NAME}`, false)
+            .send(m.chat, { quoted: m });
+        } else {
+          await deleteSingleFile(targetPath, token);
+          await m.react("✅");
+          return new Button(conn)
+            .setBody(`*FILE DELETED FROM GITHUB*\n\n• *Path* : \`${targetPath}\``)
+            .addUrl("Buka Repo", `https://github.com/${REPO_OWNER}/${REPO_NAME}`, false)
+            .send(m.chat, { quoted: m });
+        }
+      } catch (err) {
+        return m.reply("Gagal menghapus dari GitHub: " + err.message);
       }
     }
 
     if (action === "list" || action === "ls") {
-      const dirPath = args[1] || "";
-      const cleanPath = dirPath.replace(/^\.\//, "");
+      const dirPath = (args[1] || "").replace(/^\.\//, "").trim();
 
-      await m.reply(
-        `📂 Mengambil daftar file dari *${cleanPath || "root"}*...`,
-      );
+      await m.react("⏳");
 
       try {
-        const files = await listFiles(cleanPath, token);
+        const items = await listFiles(dirPath, token);
+        await m.react("✅");
 
-        if (files.length === 0) {
-          return m.reply(
-            `📁 *${cleanPath || "root"}*\n\nFolder kosong atau tidak ditemukan`,
-          );
+        if (!items.length) {
+          return m.reply(`Folder \`${dirPath || "root"}\` di GitHub kosong.`);
         }
 
-        const folders = files.filter((f) => f.type === "dir");
-        const fileItems = files.filter((f) => f.type === "file");
+        const folders = items.filter((f) => f.type === "dir");
+        const files = items.filter((f) => f.type === "file");
 
-        let message = `📁 *${cleanPath || "root"}*\n`;
-        message += `━━━━━━━━━━━━━━━━━━━━━━\n`;
+        let text = `*GITHUB REPO CONTENTS*\nPath : \`./${dirPath || "root"}\`\n\n`;
 
-        if (folders.length > 0) {
-          message += `\n📂 *Folders:*\n`;
-          folders.forEach((f) => {
-            message += `📁 ${f.name}/\n`;
-          });
+        if (folders.length) {
+          text += `*Folders*:\n` + folders.map((f) => `📁 \`${f.name}/\``).join("\n") + "\n\n";
         }
 
-        if (fileItems.length > 0) {
-          message += `\n📄 *Files:*\n`;
-          fileItems.slice(0, 30).forEach((f) => {
-            const size =
-              f.size < 1024
-                ? `${f.size} B`
-                : f.size < 1024 * 1024
-                  ? `${(f.size / 1024).toFixed(1)} KB`
-                  : `${(f.size / (1024 * 1024)).toFixed(1)} MB`;
-            message += `📄 ${f.name} (${size})\n`;
-          });
-
-          if (fileItems.length > 30) {
-            message += `\n... dan ${fileItems.length - 30} file lainnya`;
-          }
+        if (files.length) {
+          text += `*Files*:\n` + files.map((f) => `📄 \`${f.name}\` (${formatBytes(f.size)})`).join("\n");
         }
 
-        message += `\n━━━━━━━━━━━━━━━━━━━━━━\n`;
-        message += `📊 Total: ${folders.length} folder, ${fileItems.length} file`;
-
-        return m.reply(message);
-      } catch (error) {
-        console.error("List error:", error);
-        return m.reply(
-          `❌ Gagal mengambil daftar: ${error.response?.data?.message || error.message}`,
-        );
+        return m.reply(text);
+      } catch (err) {
+        return m.reply("Gagal mengambil daftar file: " + err.message);
       }
     }
 
-    if (action === "info") {
-      const filePath = args[1];
-      if (!filePath) {
-        return m.reply("Sertakan path file.\n\nContoh: .upsc info config.js");
-      }
-
-      const cleanPath = filePath.replace(/^\.\//, "");
+    if (action === "tree") {
+      await m.react("⏳");
 
       try {
-        const { data } = await axios.get(
-          `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${cleanPath}`,
-          {
-            params: { ref: BRANCH },
-            headers: {
-              Authorization: `Bearer ${token}`,
-              Accept: "application/vnd.github+json",
-            },
-          },
-        );
+        const treeItems = await getTree(token);
+        await m.react("✅");
 
-        const size =
-          data.size < 1024
-            ? `${data.size} B`
-            : data.size < 1024 * 1024
-              ? `${(data.size / 1024).toFixed(1)} KB`
-              : `${(data.size / (1024 * 1024)).toFixed(1)} MB`;
+        if (!treeItems.length) return m.reply("Tree repo kosong.");
 
-        const message = `ℹ️ *Info File GitHub*\n━━━━━━━━━━━━━━━━━━━━━━\n📄 Nama: ${data.name}\n📍 Path: ${data.path}\n💾 Size: ${size}\n🔖 Type: ${data.type}\n🆔 SHA: ${data.sha.slice(0, 7)}...\n🔗 URL: ${data.html_url}\n📅 Last commit: ${new Date(data.download_url ? Date.now() : "").toLocaleString() || "-"}`;
+        const limitedTree = treeItems.slice(0, 50);
+        const text = limitedTree.map((item) => {
+          const depth = item.path.split("/").length - 1;
+          const indent = "  ".repeat(depth);
+          const icon = item.type === "tree" ? "📁" : "📄";
+          return `${indent}${icon} \`${path.basename(item.path)}\``;
+        }).join("\n");
 
-        return m.reply(message);
-      } catch (error) {
-        if (error.response?.status === 404) {
-          return m.reply(`❌ File tidak ditemukan di GitHub: ${cleanPath}`);
-        }
-        return m.reply(
-          `❌ Gagal mengambil info: ${error.response?.data?.message || error.message}`,
-        );
+        return m.reply(`*REPOSITORY TREE HIERARCHY*\n\n${text}\n\n_Total: ${treeItems.length} item_`);
+      } catch (err) {
+        return m.reply("Gagal mengambil tree: " + err.message);
       }
     }
 
-    const repoPath = args[0].replace(/^\.\//, "");
+    const inputPath = args[0].replace(/^\.\//, "").trim();
+    const fullPath = path.resolve(process.cwd(), inputPath);
 
-    const fullPath = path.resolve(process.cwd(), repoPath);
     if (!fs.existsSync(fullPath)) {
-      return m.reply(`❌ File tidak ditemukan: ${repoPath}`);
+      return m.reply(`File atau folder \`${inputPath}\` tidak ditemukan di server.`);
     }
 
-    if (fs.statSync(fullPath).isDirectory()) {
-      return m.reply(
-        `❌ Tidak bisa upload folder.\nGunakan .upsc list ${repoPath} untuk melihat isi folder`,
-      );
+    const stat = fs.statSync(fullPath);
+
+    if (stat.isDirectory()) {
+      await m.reply(`Mengunggah seluruh folder \`${inputPath}\` ke GitHub...`);
+      await m.react("⏳");
+
+      try {
+        const res = await uploadFolder(inputPath, token);
+        await m.react("✅");
+
+        return new Button(conn)
+          .setBody(
+            `*FOLDER UPLOAD SUCCESS*\n\n` +
+              `• *Folder* : \`${inputPath}\`\n` +
+              `• *Sukses* : \`${res.uploaded} file\`\n` +
+              (res.failed ? `• *Gagal*  : \`${res.failed} file\`\n` : "") +
+              `• *Repo*   : \`${REPO_OWNER}/${REPO_NAME}\``
+          )
+          .addUrl("Buka Repo", `https://github.com/${REPO_OWNER}/${REPO_NAME}`, false)
+          .send(m.chat, { quoted: m });
+      } catch (err) {
+        return m.reply("Gagal mengupload folder: " + err.message);
+      }
     }
 
-    await m.reply(
-      `📤 Mengupload *${repoPath}* ke GitHub...\n⏳ Mohon tunggu...`,
-    );
+    await m.react("⏳");
 
     try {
-      const result = await uploadFile(repoPath, token);
+      const res = await uploadSingleFile(inputPath, token);
+      await m.react("✅");
 
-      if (!result.ok) {
-        return m.reply(`❌ Gagal: ${result.reason}`);
-      }
+      const actionText = res.action === "created" ? "Membuat File Baru" : "Menimpa File";
 
-      const actionText =
-        result.action === "created" ? "membuat file baru" : "menimpa file";
-      const fileSize = fs.statSync(fullPath).size;
-      const sizeText =
-        fileSize < 1024
-          ? `${fileSize} B`
-          : fileSize < 1024 * 1024
-            ? `${(fileSize / 1024).toFixed(1)} KB`
-            : `${(fileSize / (1024 * 1024)).toFixed(1)} MB`;
-
-      const message = `✅ *Berhasil ${actionText}*\n\n📄 ${repoPath}\n💾 ${sizeText}\n🔗 ${result.url}\n📦 Repo: ${REPO_OWNER}/${REPO_NAME}\n🌿 Branch: ${BRANCH}`;
-
-      return m.reply(message);
-    } catch (error) {
-      console.error("Upload error:", error);
-
-      let errorMsg = error.response?.data?.message || error.message;
-
-      if (errorMsg.includes("sha")) {
-        errorMsg = "Conflict: File mungkin sudah ada dengan SHA berbeda";
-      } else if (errorMsg.includes("push")) {
-        errorMsg = "Token tidak memiliki izin push";
-      } else if (errorMsg.includes("rate limit")) {
-        errorMsg = "Rate limit GitHub tercapai, coba lagi nanti";
-      }
-
-      return m.reply(`❌ Gagal upload: ${errorMsg}`);
+      return new Button(conn)
+        .setBody(
+          `*${actionText.toUpperCase()}*\n\n` +
+            `• *File*   : \`${inputPath}\`\n` +
+            `• *Ukuran* : \`${formatBytes(res.size)}\`\n` +
+            `• *Repo*   : \`${REPO_OWNER}/${REPO_NAME}\``
+        )
+        .addUrl("Buka File", res.url, false)
+        .send(m.chat, { quoted: m });
+    } catch (err) {
+      return m.reply("Gagal mengupload file: " + err.message);
     }
   },
 };
