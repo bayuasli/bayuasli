@@ -6,7 +6,8 @@ import { jidNormalizedUser, generateWAMessageFromContent } from 'baileys'
 import Func from '#lib/system/function.js'
 import { qtext, metaai, pixx, pay, pack, poll, vn, gif, gc, video, loc, kontak, salr, order } from '#lib/quoted.js'
 import { VERSION, Button, ButtonV2, Carousel, AIRich, Toolkit } from '#helper'
-import { getPrefixRegex } from '#lib/core/prefix.js'
+import { getPrefixRegex, loadPrefixConfig } from '#lib/core/prefix.js'
+import { isTrustedUser } from '#lib/store/trust-store.js'
 import { isBanned } from '#lib/core/antispam.js'
 
 const jsonCache = new Map()
@@ -153,6 +154,7 @@ export default async function Command(conn, m) {
 
   if (!body && !m.isMedia && !m.isQuoted) return
 
+  const prefixConfig = loadPrefixConfig()
   const prefixMatch = body.match(getPrefixRegex())
   m.prefix = prefixMatch ? prefixMatch[0] : ''
 
@@ -164,12 +166,12 @@ export default async function Command(conn, m) {
     m.command = parts.shift()?.toLowerCase() || ''
     m.args = parts
     m.text = parts.join(' ')
-  } else if (isOwner) {
+  } else {
     const parts = body.split(/\s+/)
     const firstWord = parts[0]?.toLowerCase()
     const match = commandMap.get(firstWord)
 
-    if (match) {
+    if (match && (!prefixConfig.enabled || isOwner || match.settings?.bypassPrefix)) {
       isCommand = true
       m.command = firstWord
       m.args = parts.slice(1)
@@ -191,7 +193,14 @@ export default async function Command(conn, m) {
   try {
     if (global.isBotLocked && !isOwner && !plugin.settings?.bypassLock) return
 
-    if (plugin.settings?.owner && !isOwner) return m.reply(mess.owner)
+    const isProtected = plugin.settings?.protected === true
+    const isTrusted = isTrustedUser(m.sender, m.command)
+
+    if (plugin.settings?.owner) {
+      if (isProtected && !isOwner) return m.reply(mess.owner)
+      if (!isProtected && !isOwner && !isTrusted) return m.reply(mess.owner)
+    }
+
     if (plugin.settings?.private && m.isGroup) return m.reply(mess.private)
     if (plugin.settings?.group && !m.isGroup) return m.reply(mess.group)
     if (plugin.settings?.admin && !isAdmin) return m.reply(mess.admin)
