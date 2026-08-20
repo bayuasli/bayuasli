@@ -1,0 +1,10 @@
+{
+  "mess": {
+    "wait": "Bitte warte einen Moment...",
+    "owner": "Diese Funktion kann nur vom Besitzer verwendet werden.",
+    "group": "Diese Funktion kann nur in Gruppen verwendet werden.",
+    "admin": "Diese Funktion ist nur für Gruppenadministratoren verfügbar.",
+    "botAdmin": "Der Bot muss zuerst Administrator sein.",
+    "private": "Diese Funktion kann nur im privaten Chat verwendet werden."
+  }
+}
