@@ -1,0 +1,10 @@
+{
+  "mess": {
+    "wait": "Harap tunggu sebentar...",
+    "owner": "Fitur ini hanya bisa digunakan oleh Owner.",
+    "group": "Fitur ini hanya bisa digunakan dalam Group.",
+    "admin": "Fitur ini hanya bisa digunakan oleh Admin Group.",
+    "botAdmin": "Bot harus menjadi Admin terlebih dahulu.",
+    "private": "Fitur ini hanya bisa digunakan di chat pribadi."
+  }
+}
