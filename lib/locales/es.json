@@ -1,0 +1,10 @@
+{
+  "mess": {
+    "wait": "Por favor, espera un momento...",
+    "owner": "Esta función solo puede ser usada por el Propietario.",
+    "group": "Esta función solo puede usarse en Grupos.",
+    "admin": "Esta función solo puede ser usada por los Administradores del grupo.",
+    "botAdmin": "El bot debe ser Administrador primero.",
+    "private": "Esta función solo puede usarse en el chat privado."
+  }
+}
