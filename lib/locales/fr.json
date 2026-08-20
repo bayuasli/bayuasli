@@ -1,0 +1,10 @@
+{
+  "mess": {
+    "wait": "Veuillez patienter un instant...",
+    "owner": "Cette fonctionnalité est réservée au Propriétaire.",
+    "group": "Cette fonctionnalité ne peut être utilisée que dans les Groupes.",
+    "admin": "Cette fonctionnalité est réservée aux Administrateurs du groupe.",
+    "botAdmin": "Le bot doit d'abord être Administrateur.",
+    "private": "Cette fonctionnalité ne peut être utilisée qu’en message privé."
+  }
+}
